@@ -1,7 +1,6 @@
 //npm run dev
 import express, { Request, Response } from "express"
 import { PrismaClient } from "@prisma/client"
-import bodyParser from "body-parser"
 import dotenv from "dotenv"
 import authRoute from "./route/auth"
 
@@ -13,15 +12,14 @@ const port = process.env.PORT || 3001
 export const prisma = new PrismaClient()
 
 async function main() {
-    app.use(bodyParser.json())
-    app.use(bodyParser.urlencoded({ extended: true }))
+    app.use(express.json())
+    app.use(express.urlencoded({ extended: true }))
 
     app.use("/api/v1", authRoute)
 
     app.all("*", (req: Request, res: Response) => {
         res.status(404).json({ error: `Route ${req.url} not found` })
     })
-
 }
 
 main()

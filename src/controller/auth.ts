@@ -1,15 +1,11 @@
 import { Request, Response } from "express";
-import { prisma } from "../app"
+import { prisma } from '../app';
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 
 const register = async (req: Request, res: Response) => {
     try {
-        console.log("burada")
         const { email, userName, password } = req.body
-        console.log(email)
-        console.log(userName)
-        console.log(password)
-
 
         const createUser = await prisma.user.create({
             data: {
@@ -18,10 +14,14 @@ const register = async (req: Request, res: Response) => {
                 password
             },
         })
+        
         res.status(200).json({ createUser })
-
-
     } catch (err) {
+        if (err instanceof PrismaClientKnownRequestError) {
+            if (err.code === "P2002") {
+                res.status(409).json({ error: "This email is already in use." })
+            }
+        }
         res.status(500).json({ error: err })
     }
 }
