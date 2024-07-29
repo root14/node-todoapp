@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node dist/app.js",
     "dev": "nodemon src/app.ts",
+    "debug": "nodemon -r dotenv/config ./src/app.ts -- --inspect",
     "build": "tsc -p .",
     "db:migrate": "npx prisma migrate dev --name user-entity --create-only && npx prisma generate",
     "db:push": "npx prisma db push"
@@ -15,6 +16,8 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "^5.17.0",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.4.5",
     "express": "^4.19.2"
   },
   "devDependencies": {
