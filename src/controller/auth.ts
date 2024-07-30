@@ -64,7 +64,7 @@ const login = async (req: Request, res: Response) => {
                     }).then((updatedUser) => {
                         res.status(200).json({
                             succes: true,
-                            userName: storedUser.userName,
+                            userName: updatedUser.userName,
                             jwt: token
                         })
                     })

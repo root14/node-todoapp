@@ -3,6 +3,7 @@ import express, { Request, Response, Application } from "express"
 import { PrismaClient } from "@prisma/client"
 import dotenv from "dotenv"
 import authRoute from "./route/auth"
+import todoRoute from "./route/todo"
 
 dotenv.config()
 
@@ -15,7 +16,7 @@ async function main() {
     app.use(express.json())
     app.use(express.urlencoded({ extended: true }))
 
-    app.use("/api/v1", authRoute)
+    app.use("/api/v1", authRoute, todoRoute)
 
     app.all("*", (req: Request, res: Response) => {
         res.status(404).json({ error: `Route ${req.url} not found` })
