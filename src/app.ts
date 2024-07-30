@@ -1,5 +1,5 @@
 //npm run dev
-import express, { Request, Response } from "express"
+import express, { Request, Response, Application } from "express"
 import { PrismaClient } from "@prisma/client"
 import dotenv from "dotenv"
 import authRoute from "./route/auth"

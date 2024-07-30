@@ -11,12 +11,12 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  userName  String
-  password  String
-  email     String   @unique
-  createdAt DateTime @default(now())
-  Todo      Todo[]
+  id             Int      @id @default(autoincrement())
+  userName       String
+  hashedPassword String
+  email          String   @unique
+  createdAt      DateTime @default(now())
+  Todo           Todo[]
 }
 
 model Todo {

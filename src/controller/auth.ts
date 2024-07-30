@@ -1,21 +1,27 @@
 import { Request, Response } from "express";
 import { prisma } from '../app';
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-
+import bcrypt from "bcrypt"
 
 const register = async (req: Request, res: Response) => {
     try {
-        const { email, userName, password } = req.body
+        const { email, userName, plainPassword } = req.body
+        console.log(email, userName, plainPassword)
 
-        const createUser = await prisma.user.create({
-            data: {
-                email,
-                userName,
-                password
-            },
+        bcrypt.hash(plainPassword, 10, async (err, hashedPassword) => {
+            if (err) { res.status(403).json({ error: err.message }) }
+            else {
+                prisma.user.create({
+                    data: {
+                        email: email,
+                        userName: userName,
+                        hashedPassword: hashedPassword
+                    },
+                }).then((createUser) => {
+                    res.status(200).json({ createUser })
+                })
+            }
         })
-        
-        res.status(200).json({ createUser })
     } catch (err) {
         if (err instanceof PrismaClientKnownRequestError) {
             if (err.code === "P2002") {
@@ -26,6 +32,43 @@ const register = async (req: Request, res: Response) => {
     }
 }
 
+const login = async (req: Request, res: Response) => {
+    const { email, plainPassword } = req.body
+
+    await prisma.user.findUnique({
+        where: {
+            email: email,
+        },
+    }).then((storedUser) => {
+        if (storedUser == null) {
+            res.status(404).json({ error: "user cannot found" })
+        } else {
+            bcrypt.compare(plainPassword, storedUser.hashedPassword, (err, isMatch) => {
+                if (err) { res.status(403).json({ error: err.message }) }
+                if (isMatch) {
+                    res.status(200).json({
+                        succes: true,
+                        userName: storedUser.userName
+                    })
+                } else {
+                    res.status(200).json({
+                        succes: false,
+                        reason: "wrong password"
+                    })
+                }
+            })
+        }
+    }).catch((err) => {
+        console.log(err)
+        if (err instanceof PrismaClientKnownRequestError) {
+            if (err.code) {
+                res.status(409).json({ error: err.message })
+            }
+        }
+        res.status(500).json({ error: err })
+    })
+}
+
 export default {
-    register
+    register, login
 }
