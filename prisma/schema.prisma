@@ -15,6 +15,7 @@ model User {
   userName       String
   hashedPassword String
   email          String   @unique
+  token          String   @default("")
   createdAt      DateTime @default(now())
   Todo           Todo[]
 }
