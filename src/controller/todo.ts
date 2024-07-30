@@ -5,6 +5,38 @@ import dotenv from "dotenv"
 
 dotenv.config()
 
+const getAllTodo = async (req: Request, res: Response) => {
+    const { email, token } = req.body
+    console.log("0")
+    jwt.verify(token, process.env.JWT_SECRET_KEY as string, (error: jwt.VerifyErrors | null, decoded: string | jwt.JwtPayload | undefined) => {
+        if (error) {
+            console.log("1")
+            res.status(401).json({ error: error })
+        } else {
+            //success
+            console.log("2")
+            prisma.user.findUnique({
+                where: {
+                    email: email
+                }
+            }).then((user) => {
+
+                prisma.todo.findMany({
+                    where: {
+                        userId: user?.id
+                    }
+                }).then((result) => {
+                    console.log("3")
+                    res.status(200).json({ todoList: result })
+                }).catch((err) => {
+                    console.log("0")
+                    res.status(401).json({ error: err })
+                })
+            })
+        }
+    })
+}
+
 const addTodo = async (req: Request, res: Response) => {
     const { email, todo, token } = req.body
 
@@ -33,5 +65,5 @@ const addTodo = async (req: Request, res: Response) => {
 }
 
 export default {
-    addTodo
+    addTodo, getAllTodo
 }
