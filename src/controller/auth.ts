@@ -30,23 +30,25 @@ const register = async (req: Request, res: Response) => {
 
 const login = async (req: Request, res: Response) => {
     const { email, plainPassword } = req.body
-    //get user
-    prisma.user.findUnique({
-        where: {
-            email: email,
-        },
-    }).then((storedUser) => {
-        if (storedUser == null) {
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: {
+                email: email,
+            },
+        })
+
+        if (user == null) {
             res.status(404).json({ error: "user cannot found" })
         } else {
             //compare plain password with hashed one
-            bcrypt.compare(plainPassword, storedUser.hashedPassword, (err, isMatch) => {
+            bcrypt.compare(plainPassword, user.hashedPassword, (err, isMatch) => {
                 if (err) { res.status(403).json({ error: err.message }) }
                 if (isMatch) {
                     //generate jwt token to use
                     const token = jwt.sign({
-                        email: storedUser.email,
-                        userName: storedUser.userName
+                        email: user.email,
+                        userName: user.userName
                     }, process.env.JWT_SECRET_KEY as string, { expiresIn: 60 * 60 })
 
                     //update db with generated token
@@ -73,14 +75,9 @@ const login = async (req: Request, res: Response) => {
                 }
             })
         }
-    }).catch((err) => {
-        if (err instanceof PrismaClientKnownRequestError) {
-            if (err.code) {
-                res.status(409).json({ error: err.message })
-            }
-        }
+    } catch (err) {
         res.status(500).json({ error: err })
-    })
+    }
 }
 
 export default {

@@ -4,6 +4,7 @@ import { PrismaClient } from "@prisma/client"
 import dotenv from "dotenv"
 import authRoute from "./route/auth"
 import todoRoute from "./route/todo"
+import verifyJWT from "./middleware/jwtVerify"
 
 dotenv.config()
 
@@ -16,7 +17,8 @@ async function main() {
     app.use(express.json())
     app.use(express.urlencoded({ extended: true }))
 
-    app.use("/api/v1", authRoute, todoRoute)
+    app.use("/api/v1/auth", authRoute)
+    app.use("/api/v1", verifyJWT, todoRoute)
 }
 
 main()
@@ -28,4 +30,4 @@ main()
         process.exit(1)
     })
 
-app.listen(port, () => console.log("server running"))
+app.listen(port, () => console.log(`server running on ${port} port`))
