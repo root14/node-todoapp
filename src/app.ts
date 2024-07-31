@@ -17,10 +17,6 @@ async function main() {
     app.use(express.urlencoded({ extended: true }))
 
     app.use("/api/v1", authRoute, todoRoute)
-
-    app.all("*", (req: Request, res: Response) => {
-        res.status(404).json({ error: `Route ${req.url} not found` })
-    })
 }
 
 main()
