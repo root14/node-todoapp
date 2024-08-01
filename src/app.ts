@@ -30,4 +30,4 @@ main()
         process.exit(1)
     })
 
-app.listen(port, () => console.log(`server running on ${port} port`))
+app.listen(port, () => console.log(`server running on ${port}`))

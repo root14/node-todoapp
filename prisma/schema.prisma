@@ -10,20 +10,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model workspace {
+  id     Int    @id @default(autoincrement())
+  name   String @unique
+  todo   Todo[]
+  User   User?  @relation(fields: [userId], references: [id])
+  userId Int?
+}
+
 model User {
-  id             Int      @id @default(autoincrement())
+  id             Int         @id @default(autoincrement())
   userName       String
   hashedPassword String
-  email          String   @unique
-  token          String   @default("")
-  createdAt      DateTime @default(now())
-  Todo           Todo[]
+  email          String      @unique
+  token          String      @default("")
+  createdAt      DateTime    @default(now())
+  workspace      workspace[]
 }
 
 model Todo {
-  id    Int    @id @default(autoincrement())
-  task  String
-  owner User   @relation(fields: [userId], references: [id])
-
-  userId Int
+  id          Int        @id @default(autoincrement())
+  task        String
+  workspace   workspace? @relation(fields: [workspaceId], references: [id])
+  workspaceId Int?
 }

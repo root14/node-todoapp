@@ -4,6 +4,38 @@ import dotenv from "dotenv"
 
 dotenv.config()
 
+const createWorkSpace = async (req: Request, res: Response) => {
+    try {
+
+        const { email, workSpaceName } = req.body
+
+        const user = await prisma.user.findUnique({
+            where: {
+                email: email
+            }
+        })
+
+        const existWorkSpace = await prisma.workspace.findUnique({
+            where: {
+                name: workSpaceName
+            }
+        })
+
+        if (existWorkSpace === null) {
+            await prisma.workspace.create({
+                data: {
+                    userId: user?.id,
+                    name: workSpaceName
+                }
+            })
+            res.json(200).json({ succes: "workspace created." })
+        }
+
+    } catch (err) {
+        res.status(500).json({ err })
+    }
+}
+
 const deleteTodo = async (req: Request, res: Response) => {
     try {
         const { todoId } = req.body
@@ -25,22 +57,29 @@ const deleteTodo = async (req: Request, res: Response) => {
 
 const getAllTodo = async (req: Request, res: Response) => {
     try {
-        const { email } = req.body
+        const { email, workSpaceName } = req.body
 
-        prisma.user.findUnique({
+        const existUser = await prisma.user.findUnique({
             where: {
                 email: email
             }
-        }).then((user) => {
-            prisma.todo.findMany({
-                where: {
-                    userId: user?.id
-                }
-            }).then((result) => {
-                res.status(200).json({ todoList: result })
-            }).catch((err) => {
-                res.status(401).json({ error: err })
-            })
+        }).catch((err) => {
+            res.status(500).json(err)
+        })
+
+        const _workspace = await prisma.workspace.findUnique({
+            where: {
+                userId: existUser?.id,
+                name: workSpaceName
+            }
+        })
+
+        prisma.todo.findMany({
+            where: {
+                workspaceId: _workspace?.id,
+            }
+        }).then((result) => {
+            res.status(200).json({ result })
         })
 
     } catch (err) {
@@ -50,22 +89,30 @@ const getAllTodo = async (req: Request, res: Response) => {
 
 const addTodo = async (req: Request, res: Response) => {
     try {
-        const { email, todo } = req.body
+        const { email, workSpaceName, todo } = req.body
 
-        prisma.user.update({
+        const existUser = await prisma.user.findUnique({
             where: {
-                email: email,
-            },
-            data: {
-                Todo: {
-                    create: { task: todo },
-                },
-            },
-            include: { Todo: true }
-        }).then(() => {
-            res.status(200).json({ success: true })
+                email: email
+            }
         }).catch((err) => {
-            res.status(401).json({ error: err })
+            res.status(500).json(err)
+        })
+
+        const workSpace = await prisma.workspace.findUnique({
+            where: {
+                userId: existUser?.id,
+                name: workSpaceName
+            }
+        })
+
+        await prisma.todo.create({
+            data: {
+                task: todo,
+                workspaceId: workSpace?.id
+            }
+        }).then(() => {
+            res.status(200).json({ success: "success" })
         })
 
     } catch (err) {
@@ -74,5 +121,5 @@ const addTodo = async (req: Request, res: Response) => {
 }
 
 export default {
-    addTodo, getAllTodo, deleteTodo
+    addTodo, getAllTodo, deleteTodo, createWorkSpace
 }
