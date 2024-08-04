@@ -43,20 +43,51 @@ const createWorkSpace = async (req: Request, res: Response) => {
 
 const deleteTodo = async (req: Request, res: Response) => {
     try {
-        const { todoId } = req.body
+        const { email, todoId, workSpaceName } = req.body
 
-        await prisma.todo.delete({
+        const user = await prisma.user.findUnique({
+            where: { email: email }
+        })
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" })
+        }
+
+        const workspace = await prisma.workspace.findFirst({
             where: {
-                id: todoId
+                name: workSpaceName,
+                userId: user.id
             }
         })
 
-        res.status(200).json({ success: true })
+        if (!workspace) {
+            return res.status(404).json({ error: "Workspace not found" })
+        }
+
+        const todo = await prisma.todo.findFirst({
+            where: {
+                id: todoId,
+                workspaceId: workspace.id
+            }
+        })
+
+
+        if (!todo) {
+            return res.status(404).json({ error: "Todo not found" })
+        }
+
+        await prisma.todo.delete({
+            where: { id: todo.id }
+        })
+
+        res.status(200).json({ success: "Todo deleted successfully" })
 
     } catch (err) {
+        console.error('Error:', err)
         res.status(500).json({ error: err })
     }
 }
+
 
 const getAllTodo = async (req: Request, res: Response) => {
     try {
